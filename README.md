@@ -1,6 +1,7 @@
 # credit-risk-model
 
 ## Credit Scoring Business Understanding
+Credit risk refers to the risk that a borrower or counterparty will fail to meet its contractual financial obligations, resulting in a potential financial loss to the lender.
 ### Basel II and the Need for Model Interpretability and Documentation
 
 * According to regulatory guidance referenced in the World Bank Credit Scoring Approaches Guidelines, a model is a quantitative method or system that transforms input data into estimates used for financial decision-making, and reliance on such models inherently introduces model risk.
