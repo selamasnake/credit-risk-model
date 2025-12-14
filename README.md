@@ -37,3 +37,29 @@ Complex, high-performance models (e.g., Gradient Boosting, ensemble methods):
 * Increase model risk and operational complexity
 
 In regulated financial environments, institutions often prioritize interpretability, robustness, and compliance over marginal gains in performance, as increased model complexity materially raises governance, validation, and model risk management requirements. As a result, simpler models are frequently preferred for production credit decisioning, while complex models may be used as challenger models or for internal risk insights.
+
+### Credit Risk EDA
+#### Project Structure
+
+- `data/`
+Contains the raw and processed data files (ignored in git).
+
+- `notebooks/`
+Jupyter notebooks for interactive exploration and analysis.
+Key notebook: `eda.ipynb` — contains the main exploratory data analysis workflow.
+
+- `src/`
+Placeholder for Python modules for data processing and future model development.
+
+- `tests/`
+Unit tests for src/ modules, ensuring correctness of data processing and EDA functions.
+
+- `.github/workflows/ci.yml`
+CI/CD workflow for testing and style checks.
+
+#### How to use
+* Clone the repo and install dependencies from `requirements.txt`.
+* Open `notebooks/eda.ipynb` to explore the dataset and run EDA analyses.
+
+#### Requirements
+* See `requirements.txt` for the necessary Python libraries.
