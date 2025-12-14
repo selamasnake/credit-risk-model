@@ -1,1 +1,1 @@
-from data_processing import *
+from .data_processing import DataLoader, EDAProcessor
