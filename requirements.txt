@@ -5,3 +5,5 @@ seaborn
 jupyter
 scipy
 pytest
+xverse
+scikit-learn
