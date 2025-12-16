@@ -1,6 +1,11 @@
 import os
 import pandas as pd
 from scipy.stats import entropy
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.impute import SimpleImputer
+from xverse.transformer import WOE
 
 
 class DataLoader:
@@ -97,3 +102,135 @@ class EDAProcessor:
         """Returns correlation matrix for numerical features."""
 
         return self.data[numerical_cols].corr(method=method)
+
+
+class FeatureEngineer:
+    """Feature engineering for transaction-level credit data."""
+
+    NUMERICAL_FEATURES = [
+        "total_transaction_amount",
+        "avg_transaction_amount",
+        "transaction_count",
+        "std_transaction_amount",
+        "transaction_hour",
+        "transaction_day",
+        "transaction_month",
+        "transaction_year",
+    ]
+
+    CATEGORICAL_FEATURES = [
+        "CurrencyCode",
+        "CountryCode",
+        "ProductCategory",
+        "ChannelId",
+        "PricingStrategy",
+    ]
+
+    def extract_datetime_features(self, df: pd.DataFrame) -> pd.DataFrame:
+        df = df.copy()
+        df["TransactionStartTime"] = pd.to_datetime(
+            df["TransactionStartTime"], errors="coerce"
+        )
+
+        df["transaction_hour"] = df["TransactionStartTime"].dt.hour
+        df["transaction_day"] = df["TransactionStartTime"].dt.day
+        df["transaction_month"] = df["TransactionStartTime"].dt.month
+        df["transaction_year"] = df["TransactionStartTime"].dt.year
+
+        return df
+
+    def aggregate_customer_features(self, df: pd.DataFrame) -> pd.DataFrame:
+        agg_df = (
+            df.groupby("CustomerId")
+            .agg(
+                total_transaction_amount=("Amount", "sum"),
+                avg_transaction_amount=("Amount", "mean"),
+                transaction_count=("TransactionId", "count"),
+                std_transaction_amount=("Amount", "std"),
+            )
+            .reset_index()
+        )
+
+        # Handle single-transaction customers
+        agg_df["std_transaction_amount"] = agg_df["std_transaction_amount"].fillna(0)
+
+        return agg_df
+
+    @staticmethod
+    def build_preprocessing_pipeline() -> ColumnTransformer:
+        """Create sklearn preprocessing pipeline."""
+
+        numeric_pipeline = Pipeline(steps=[
+            ("imputer", SimpleImputer(strategy="median")),
+            ("scaler", StandardScaler())
+        ])
+
+        categorical_pipeline = Pipeline(steps=[
+            ("imputer", SimpleImputer(strategy="most_frequent")),
+            ("encoder", OneHotEncoder(handle_unknown="ignore"))
+        ])
+
+        preprocessor = ColumnTransformer(
+            transformers=[
+                ("num", numeric_pipeline, FeatureEngineer.NUMERICAL_FEATURES),
+                ("cat", categorical_pipeline, FeatureEngineer.CATEGORICAL_FEATURES),
+            ]
+        )
+
+        return preprocessor
+
+
+class WoETransformer:
+    """
+    Weight of Evidence (WoE) transformer for binary classification tasks.
+    It wraps the xverse.WOE class to handle multiple features.
+    """
+    def __init__(self, target_col: str, features: list = None):
+        self.target_col = target_col
+        self.features = features
+        self.woe_map = {}
+        self.feature_names_ = None
+
+    def fit(self, df: pd.DataFrame):
+        y = df[self.target_col]
+        
+        if y.nunique() != 2:
+            raise ValueError("WoE requires a binary target variable.")
+
+        if self.features is None:
+            X_df = df.select_dtypes(include=["number"]).drop(
+                columns=[self.target_col], errors="ignore"
+            )
+        else:
+            X_df = df[self.features]
+
+        self.feature_names_ = X_df.columns.tolist()
+
+        for feature in self.feature_names_:
+            feature_woe = WOE()
+            X_feature = X_df[[feature]]
+            feature_woe.fit(X_feature, y)
+            self.woe_map[feature] = feature_woe
+            
+        return self
+
+    def transform(self, df: pd.DataFrame) -> pd.DataFrame:
+        if not self.feature_names_:
+            raise RuntimeError("WoETransformer has not been fitted yet.")
+            
+        transformed_dfs = []
+        
+        for feature in self.feature_names_:
+            X_feature = df[[feature]]
+            feature_woe = self.woe_map[feature]
+            transformed_series = feature_woe.transform(X_feature)
+            transformed_df = pd.DataFrame(transformed_series, columns=[feature])
+            transformed_dfs.append(transformed_df)
+            
+        result_df = pd.concat(transformed_dfs, axis=1)
+        result_df.index = df.index
+        
+        return result_df
+
+    def fit_transform(self, df: pd.DataFrame) -> pd.DataFrame:
+        return self.fit(df).transform(df)
