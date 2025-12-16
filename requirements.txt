@@ -7,3 +7,6 @@ scipy
 pytest
 xverse
 scikit-learn
+xgboost
+lightgbm
+mlflow

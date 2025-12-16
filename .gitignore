@@ -16,3 +16,7 @@ data/*
 .ipynb_checkpoints/
 
 .DS_Store
+
+# MLflow artifacts
+mlruns/
+mlflow.db
