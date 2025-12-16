@@ -38,28 +38,28 @@ Complex, high-performance models (e.g., Gradient Boosting, ensemble methods):
 
 In regulated financial environments, institutions often prioritize interpretability, robustness, and compliance over marginal gains in performance, as increased model complexity materially raises governance, validation, and model risk management requirements. As a result, simpler models are frequently preferred for production credit decisioning, while complex models may be used as challenger models or for internal risk insights.
 
-### Credit Risk EDA
+## Credit Risk Model
+
 #### Project Structure
 
-- `data/`
-Contains the raw and processed data files (ignored in git).
+- `data/` — raw and processed datasets (ignored in git).  
+- `notebooks/` — Jupyter notebooks for exploration and feature engineering:  
+  - `eda.ipynb` — initial data exploration.  
+  - `feature_engineering.ipynb` — feature creation and preprocessing.  
+  - `proxy_target.ipynb` — RFM calculation, K-Means clustering, and high-risk target creation.  
+- `src/` — Python modules:  
+  - `data_processing.py` — EDA helpers and preprocessing pipelines.  
+  - `proxy_target.py` — RFM and high-risk target functions.  
+- `tests/` — unit tests for the src modules.  
+- `.github/workflows/ci.yml` — CI/CD workflow for tests and style checks.
 
-- `notebooks/`
-Jupyter notebooks for interactive exploration and analysis.
-Key notebook: `eda.ipynb` — contains the main exploratory data analysis workflow.
+#### How to Use
 
-- `src/`
-Placeholder for Python modules for data processing and future model development.
+1. Clone the repo and install dependencies from `requirements.txt`.  
+2. Use the notebooks to explore data, generate features, and create the proxy target.  
+3. Processed datasets in `data/processed/` are ready for model training.
 
-- `tests/`
-Unit tests for src/ modules, ensuring correctness of data processing and EDA functions.
-
-- `.github/workflows/ci.yml`
-CI/CD workflow for testing and style checks.
-
-#### How to use
-* Clone the repo and install dependencies from `requirements.txt`.
-* Open `notebooks/eda.ipynb` to explore the dataset and run EDA analyses.
 
 #### Requirements
+
 * See `requirements.txt` for the necessary Python libraries.
